@@ -10,5 +10,6 @@ crash.*.log
 # Variables de entorno y sistema
 .env
 .env.*
+!.env.example
 .DS_Store
 /.idea/

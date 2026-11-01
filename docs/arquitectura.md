@@ -1,6 +1,6 @@
 # Arquitectura
 
-XDR interno para las laptops Windows de la empresa, con un VPS económico como punto público y la PC del administrador como centro de análisis. No busca alertas en tiempo real: el administrador revisa los eventos cuando abre el panel.
+XDR interno para las laptops Windows de la empresa, con un VPS económico como punto público y base de datos, y la PC del administrador para el análisis pesado. No busca alertas en tiempo real: el administrador revisa los eventos cuando abre el panel.
 
 Microsoft Defender sigue activo como antivirus. Este proyecto agrega visibilidad y respuesta, no lo reemplaza.
 
@@ -8,10 +8,10 @@ Microsoft Defender sigue activo como antivirus. Este proyecto agrega visibilidad
 Laptop (agente + Sysmon + SQLite)
    │  solo conexiones salientes por HTTPS
    ▼
-VPS (API + frp) ──── R2 (lotes de eventos)
+VPS (API + frp + PostgreSQL) ──── R2 (lotes de eventos)
    ▲
    │  túnel saliente iniciado por la PC del administrador
-Panel web y base de datos en la PC del administrador
+Panel web y análisis en la PC del administrador
 ```
 
 ## Componentes
@@ -20,9 +20,10 @@ Panel web y base de datos en la PC del administrador
 |---|---|---|
 | Agente (`cliente/`) | Go, servicio de Windows | Registra eventos, los guarda en SQLite, los sube y ejecuta órdenes |
 | Sensores | Sysmon y eventos de Defender | Aportan procesos, conexiones, archivos y alertas de malware |
-| VPS | OVH VPS-1, API y frp | Autentica a los agentes, guarda órdenes pendientes y reenvía sesiones en vivo |
+| VPS | OVH VPS-1 con Docker: API y frp | Autentica a los agentes, guarda órdenes pendientes y reenvía sesiones en vivo |
+| Base de datos | PostgreSQL 18 en Docker, en el VPS | Guarda eventos, alertas e historial |
 | Almacenamiento | Cloudflare R2 | Guarda los lotes hasta que el panel los importa |
-| Panel (`admin/`) | Web local y base de datos local | Importa eventos, aplica reglas y envía órdenes |
+| Panel (`admin/`) | Web local | Importa eventos a la base de datos, aplica reglas y envía órdenes |
 | Infraestructura (`infraestructura/`) | Terraform | Declara los recursos de la nube |
 
 ## Flujos
@@ -37,7 +38,7 @@ Panel web y base de datos en la PC del administrador
 
 1. Descargar el lote.
 2. Verificar su integridad.
-3. Guardarlo en la base de datos local.
+3. Descifrarlo en la PC del administrador y guardarlo en PostgreSQL por un túnel SSH.
 4. Borrarlo del bucket.
 
 Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
@@ -57,7 +58,10 @@ Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
 - La pantalla de administración y la base de datos nunca se exponen a internet.
 - El VPS tiene el firewall limitado a los puertos necesarios y SSH solo con clave.
 - Antes de instalar agentes en laptops reales, el XDR debe tener un VPS propio, sin otros proyectos públicos.
-- La base de datos local necesita una copia de seguridad cifrada, porque es la única copia del historial.
+- PostgreSQL nunca se expone a internet: solo escucha en el VPS y se accede por un túnel SSH.
+- La base de datos necesita copias de seguridad cifradas fuera del VPS, porque es la única copia del historial.
+- Los eventos quedan legibles en el VPS una vez importados, así que proteger el servidor es crítico.
+- Hay que vigilar el disco: el VPS tiene 40 GB y debe definirse cuánto tiempo se conserva el historial.
 - Los usuarios de las laptops no deben tener permisos de administrador; con ellos podrían desactivar el agente.
 - Los trabajadores deben estar informados por escrito de que las laptops están monitoreadas y de que existe acceso remoto.
 
@@ -73,3 +77,4 @@ Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
 - Cantidad de laptops.
 - Herramienta para emular Windows durante las pruebas.
 - Herramienta de acceso remoto: administración por comandos o vista de pantalla.
+- Tiempo de retención de los eventos en la base de datos.
