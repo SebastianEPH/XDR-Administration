@@ -8,9 +8,9 @@ Microsoft Defender sigue activo como antivirus. Este proyecto agrega visibilidad
 Laptop (agente + Sysmon + SQLite)
    │  solo conexiones salientes por HTTPS
    ▼
-VPS (API + frp + PostgreSQL) ──── R2 (lotes de eventos)
+VPS con Docker (Caddy + API + frp + PostgreSQL)
    ▲
-   │  túnel saliente iniciado por la PC del administrador
+   │  túnel SSH y túnel frp, iniciados por la PC del administrador
 Panel web y análisis en la PC del administrador
 ```
 
@@ -18,59 +18,52 @@ Panel web y análisis en la PC del administrador
 
 | Componente | Tecnología | Función |
 |---|---|---|
-| Agente (`cliente/`) | Go, servicio de Windows | Registra eventos, los guarda en SQLite, los sube y ejecuta órdenes |
+| Agente (`cliente/`) | Go, servicio de Windows | Registra eventos, los guarda en SQLite, los envía y ejecuta órdenes |
 | Sensores | Sysmon y eventos de Defender | Aportan procesos, conexiones, archivos y alertas de malware |
-| VPS | OVH VPS-1 con Docker: API y frp | Autentica a los agentes, guarda órdenes pendientes y reenvía sesiones en vivo |
-| Base de datos | PostgreSQL 18 en Docker, en el VPS | Guarda eventos, alertas e historial |
-| Almacenamiento | Cloudflare R2 | Guarda los lotes hasta que el panel los importa |
-| Panel (`admin/`) | Web local | Importa eventos a la base de datos, aplica reglas y envía órdenes |
-| Infraestructura (`infraestructura/`) | Terraform | Declara los recursos de la nube |
+| Entrada web | Caddy en Docker | Recibe el tráfico HTTPS y lo reenvía a la API |
+| API | Go en Docker | Autentica a los agentes, guarda eventos y entrega órdenes |
+| Túneles | frp en Docker | Reenvía sesiones en vivo hacia la PC del administrador y las laptops |
+| Base de datos | PostgreSQL 18 en Docker | Guarda eventos, alertas, órdenes e historial |
+| Panel (`admin/`) | Web local | Consulta la base de datos, aplica reglas y envía órdenes |
+| Infraestructura (`infraestructura/vps/`) | Docker Compose | Define los servicios del VPS |
 
 ## Flujos
 
-**Eventos:** el agente sube lotes comprimidos y cifrados de forma periódica, sin esperar al panel. Así los datos se conservan aunque la PC del administrador esté apagada o la laptop se formatee después.
+**Eventos:** el agente envía lotes comprimidos a la API de forma periódica, sin esperar al panel. Si no hay conexión, los guarda en SQLite y los reintenta. Así los datos se conservan aunque la PC del administrador esté apagada o la laptop se formatee después.
 
 **Órdenes:** el agente consulta el VPS cada pocos minutos. Si la laptop está apagada, la orden espera hasta que vuelva a conectarse. Las laptops no reciben conexiones entrantes, por lo que no necesitan IP pública.
 
-**Datos grandes:** se suben solo bajo pedido, directo a R2 y con un enlace temporal.
+**Datos grandes:** se suben solo bajo pedido y se guardan temporalmente en el disco del VPS hasta que el panel los descarga.
 
-**Importación:** el panel sigue siempre este orden:
-
-1. Descargar el lote.
-2. Verificar su integridad.
-3. Descifrarlo en la PC del administrador y guardarlo en PostgreSQL por un túnel SSH.
-4. Borrarlo del bucket.
-
-Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
+**Análisis:** el panel lee los eventos por lotes desde PostgreSQL a través de un túnel SSH y procesa lo pesado en la PC del administrador.
 
 **Acceso remoto:** una orden firmada hace que el agente abra un túnel saliente hacia el VPS. El túnel se cierra al terminar la sesión o al vencer su plazo, así que no queda abierto de forma permanente.
 
-**Si el panel está cerrado:** los agentes siguen subiendo eventos y consultando órdenes, pero no hay sesiones en vivo. El trabajo pesado se ejecuta solo en la PC del administrador.
+**Si el panel está cerrado:** los agentes siguen enviando eventos y consultando órdenes, pero no hay sesiones en vivo.
 
 ## Requisitos de seguridad
 
 - Las órdenes van firmadas con una clave que solo está en la PC del administrador, de modo que tomar el VPS no permite controlar las laptops.
 - El agente solo acepta acciones predefinidas, nunca comandos libres.
 - Cada laptop tiene su propia credencial y no puede leer datos de otra.
-- Las laptops solo pueden subir datos; borrarlos es exclusivo del panel.
-- Los lotes se cifran para que solo la PC del administrador pueda leerlos.
+- Las laptops solo pueden enviar eventos; no pueden leerlos ni borrarlos.
 - frp exige token y cifrado, y solo expone los servicios necesarios.
-- La pantalla de administración y la base de datos nunca se exponen a internet.
-- El VPS tiene el firewall limitado a los puertos necesarios y SSH solo con clave.
-- Antes de instalar agentes en laptops reales, el XDR debe tener un VPS propio, sin otros proyectos públicos.
 - PostgreSQL nunca se expone a internet: solo escucha en el VPS y se accede por un túnel SSH.
+- La pantalla de administración nunca se expone a internet.
+- El VPS tiene el firewall limitado a los puertos necesarios y SSH solo con clave.
+- Los eventos quedan legibles en el VPS, así que proteger el servidor es crítico.
+- Antes de instalar agentes en laptops reales, el XDR debe tener un VPS propio, sin otros proyectos públicos.
 - La base de datos necesita copias de seguridad cifradas fuera del VPS, porque es la única copia del historial.
-- Los eventos quedan legibles en el VPS una vez importados, así que proteger el servidor es crítico.
-- Hay que vigilar el disco: el VPS tiene 40 GB y debe definirse cuánto tiempo se conserva el historial.
 - Los usuarios de las laptops no deben tener permisos de administrador; con ellos podrían desactivar el agente.
 - Los trabajadores deben estar informados por escrito de que las laptops están monitoreadas y de que existe acceso remoto.
 
+## Capacidad
+
+El VPS tiene 40 GB de disco y 4 GB de RAM. Eventos, archivos temporales y copias locales comparten ese espacio, por lo que hay que definir el tiempo de retención y vigilar el uso del disco.
+
 ## Portabilidad
 
-- R2 es compatible con la API de S3, así que el mismo código de almacenamiento sirve para ambos.
-- El agente y el panel solo hablan con nuestra API, no con servicios de una nube concreta.
-- Cada nube tiene su propia carpeta en `infraestructura/`: Cloudflare y AWS son alternativas y solo se despliega una.
-- El VPS se contrata manualmente y su configuración debe poder repetirse en otro proveedor.
+El VPS se contrata manualmente. Su configuración está en `infraestructura/vps/` y debe poder repetirse en otro proveedor.
 
 ## Decisiones pendientes
 
@@ -78,3 +71,4 @@ Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
 - Herramienta para emular Windows durante las pruebas.
 - Herramienta de acceso remoto: administración por comandos o vista de pantalla.
 - Tiempo de retención de los eventos en la base de datos.
+- Destino de las copias de seguridad.

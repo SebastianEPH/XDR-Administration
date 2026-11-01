@@ -6,6 +6,6 @@ XDR interno para laptops Windows, con agente, un VPS económico como punto públ
 |---|---|
 | [`cliente/`](cliente/README.md) | Agente para las laptops Windows |
 | [`admin/`](admin/README.md) | Panel web del administrador |
-| [`infraestructura/`](infraestructura/README.md) | Recursos de la nube con Terraform |
+| [`infraestructura/`](infraestructura/README.md) | Configuración del VPS con Docker Compose |
 
 Más detalles en [Arquitectura](docs/arquitectura.md).
