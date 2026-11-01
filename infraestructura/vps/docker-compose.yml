@@ -5,6 +5,29 @@ services:
     image: postgres:18
     container_name: postgres
     restart: unless-stopped
+    shm_size: 256m
+    # Valores para un VPS de 4 GB compartido con otros servicios.
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=2GB
+      - -c
+      - work_mem=8MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - max_wal_size=1GB
+      # Valor general; cada proyecto puede definir el suyo con ALTER ROLE.
+      - -c
+      - statement_timeout=5min
+      - -c
+      - idle_in_transaction_session_timeout=5min
+      - -c
+      - log_min_duration_statement=500ms
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER en .env}
