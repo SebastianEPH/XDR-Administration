@@ -1,2 +1,0 @@
-# Copia este archivo como terraform.tfvars y completa los valores.
-bucket_name = "NOMBRE_UNICO_DEL_BUCKET"
