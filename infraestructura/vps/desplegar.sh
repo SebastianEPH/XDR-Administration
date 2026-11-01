@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SERVIDOR="${SERVIDOR:-xdr-vps}"
-DESTINO="xdr"
+DESTINO="plataforma"
 cd "$(dirname "$0")"
 
 if [ ! -f .env ]; then
@@ -29,7 +29,7 @@ sudo docker compose up -d --quiet-pull
 
 estado=""
 for _ in $(seq 1 30); do
-  estado=$(sudo docker inspect -f '{{.State.Health.Status}}' xdr-postgres)
+  estado=$(sudo docker inspect -f '{{.State.Health.Status}}' postgres)
   [ "$estado" = healthy ] && break
   sleep 2
 done
@@ -44,7 +44,7 @@ usuario=$(grep '^POSTGRES_USER=' .env | cut -d= -f2-)
 base=$(grep '^POSTGRES_DB=' .env | cut -d= -f2-)
 clave=$(grep '^POSTGRES_PASSWORD=' .env | cut -d= -f2-)
 printf "ALTER ROLE \"%s\" PASSWORD '%s';\n" "$usuario" "${clave//\'/\'\'}" \
-  | sudo docker exec -i xdr-postgres psql -q -v ON_ERROR_STOP=1 -U "$usuario" -d "$base" >/dev/null
+  | sudo docker exec -i postgres psql -q -v ON_ERROR_STOP=1 -U "$usuario" -d "$base" >/dev/null
 
 sudo docker compose ps --format '{{.Name}} {{.Status}}'
 REMOTO

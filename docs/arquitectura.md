@@ -23,7 +23,7 @@ Panel web y análisis en la PC del administrador
 | Entrada web | Caddy en Docker | Recibe el tráfico HTTPS y lo reenvía a la API |
 | API | Go en Docker | Autentica a los agentes, guarda eventos y entrega órdenes |
 | Túneles | frp en Docker | Reenvía sesiones en vivo hacia la PC del administrador y las laptops |
-| Base de datos | PostgreSQL 18 en Docker | Guarda eventos, alertas, órdenes e historial |
+| Base de datos | PostgreSQL 18 en Docker | Servidor compartido entre proyectos; cada uno usa su esquema, y el XDR guarda en `xdr` sus eventos, alertas, órdenes e historial |
 | Panel (`admin/`) | Web local | Consulta la base de datos, aplica reglas y envía órdenes |
 | Infraestructura (`infraestructura/vps/`) | Docker Compose | Define los servicios del VPS |
 

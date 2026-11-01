@@ -1,11 +1,13 @@
+name: plataforma
+
 services:
   postgres:
     image: postgres:18
-    container_name: xdr-postgres
+    container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-xdr}
-      POSTGRES_USER: ${POSTGRES_USER:-xdr}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER en .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
     volumes:
       # Desde PostgreSQL 18, los datos se montan aquí y no en .../data.
