@@ -33,12 +33,7 @@ La API corre en el VPS, que se contrata aparte y no se administra desde estas ca
 
 1. Activa R2 en el panel de Cloudflare.
 2. Crea un token de API personalizado con el permiso **Cuenta**, **Workers R2 Storage**, **Editar**.
-3. Crea `cloudflare/.env` con tus datos:
-
-   ```sh
-   export CLOUDFLARE_API_TOKEN="tu-token"
-   export TF_VAR_cloudflare_account_id="tu-account-id"
-   ```
+3. Copia `cloudflare/.env.example` como `cloudflare/.env` y completa tus datos.
 
 4. Ejecuta los comandos:
 

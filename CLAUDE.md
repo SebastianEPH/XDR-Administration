@@ -28,3 +28,4 @@ git push origin master v1.2.0
 - La arquitectura y las decisiones de diseño están en `docs/arquitectura.md`.
 - La infraestructura se administra con Terraform en `infraestructura/`. Explicar los pasos de Terraform, porque el dueño del proyecto lo está aprendiendo.
 - El repo es público: nunca subir secretos, `terraform.tfvars` ni `terraform.tfstate`.
+- Cada `.env` debe tener al lado un `.env.example` con los mismos nombres y valores de ejemplo. El `.env` nunca se sube a git.
