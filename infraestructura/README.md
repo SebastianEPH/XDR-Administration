@@ -13,8 +13,19 @@
    ssh xdr-vps 'sudo bash -s' < infraestructura/vps/preparar.sh
    ```
 
-2. Copia `vps/docker-compose.yml` a `~/xdr/` en el servidor y crea ahí su `.env` a partir de `vps/.env.example`, con una contraseña larga.
-3. Levanta los servicios en esa carpeta con `sudo docker compose up -d`.
+2. Crea tu `.env` de secretos en el proyecto, con una contraseña larga:
+
+   ```sh
+   cp infraestructura/vps/.env.example infraestructura/vps/.env
+   ```
+
+3. Envía la configuración al VPS y levanta los servicios:
+
+   ```sh
+   infraestructura/vps/desplegar.sh
+   ```
+
+Las contraseñas se cambian en `infraestructura/vps/.env`, y `desplegar.sh` las aplica en el servidor. Ese archivo no se sube a git, así que guárdalo también en tu gestor de contraseñas.
 
 Para llegar a PostgreSQL desde la Mac, abre un túnel SSH:
 

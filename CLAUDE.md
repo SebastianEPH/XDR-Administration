@@ -28,4 +28,5 @@ git push origin master v1.2.0
 - La arquitectura y las decisiones de diseño están en `docs/arquitectura.md`.
 - La infraestructura del VPS está en `infraestructura/vps/`, con Docker Compose. Explicar los pasos de infraestructura, porque el dueño del proyecto está aprendiendo.
 - El repo es público: nunca subir secretos.
+- Los secretos del VPS se gestionan en `infraestructura/vps/.env`, y `infraestructura/vps/desplegar.sh` los envía al servidor. No editarlos directamente en el servidor.
 - Cada `.env` debe tener al lado un `.env.example` con los mismos nombres y valores de ejemplo. El `.env` nunca se sube a git.
