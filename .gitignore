@@ -1,0 +1,13 @@
+# Terraform: el estado y las variables locales pueden contener datos sensibles
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+
+# Variables de entorno y sistema
+.env
+.env.*
+.DS_Store
