@@ -9,7 +9,7 @@ Cada nube tiene su carpeta y su propio estado. Son alternativas: el XDR usa solo
 | `cloudflare/` | Bucket R2 con borrado automático |
 | `aws/` | Bucket S3 privado con borrado automático |
 
-La API del buzón se agregará cuando esté programada.
+La API corre en el VPS, que se contrata aparte y no se administra desde estas carpetas.
 
 ## Conceptos
 

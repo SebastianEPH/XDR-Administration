@@ -1,6 +1,6 @@
 # XDR-Administration
 
-XDR interno para laptops Windows, con agente, panel web y sin servidores encendidos todo el día.
+XDR interno para laptops Windows, con agente, un VPS económico como punto público y panel web en la PC del administrador.
 
 | Carpeta | Contenido |
 |---|---|
