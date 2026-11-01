@@ -28,7 +28,7 @@ Terraform crea los recursos de la nube a partir de estos archivos: describes lo 
 2. Carga el token y prepara tus variables:
 
    ```sh
-   cd infra
+   cd infraestructura
    export CLOUDFLARE_API_TOKEN="tu-token"
    cp terraform.tfvars.example terraform.tfvars
    ```

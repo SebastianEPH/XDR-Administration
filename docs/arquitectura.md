@@ -18,11 +18,11 @@ Panel web y base de datos en la PC del administrador
 
 | Componente | Tecnología | Función |
 |---|---|---|
-| Agente | Go, servicio de Windows | Registra eventos, los guarda en SQLite, los sube y ejecuta órdenes |
+| Agente (`cliente/`) | Go, servicio de Windows | Registra eventos, los guarda en SQLite, los sube y ejecuta órdenes |
 | Sensores | Sysmon y eventos de Defender | Aportan procesos, conexiones, archivos y alertas de malware |
 | Buzón | Cloudflare Worker y R2 | Guarda eventos y órdenes hasta que el destinatario los recoge |
-| Panel | Web local y base de datos local | Importa eventos, aplica reglas y envía órdenes |
-| Infraestructura | Terraform | Declara los recursos de la nube en `infra/` |
+| Panel (`admin/`) | Web local y base de datos local | Importa eventos, aplica reglas y envía órdenes |
+| Infraestructura (`infraestructura/`) | Terraform | Declara los recursos de la nube |
 
 ## Flujos
 
@@ -57,7 +57,7 @@ Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
 - R2 es compatible con la API de S3, así que el mismo código de almacenamiento sirve para ambos.
 - El agente y el panel solo hablan con nuestra API, no con servicios de una nube concreta.
 - Las órdenes se guardan como archivos en el bucket, sin una base de datos adicional.
-- Cada nube tiene su propio módulo en `infra/modules/`. Por ahora solo existe el de Cloudflare.
+- Cada nube tiene su propio módulo en `infraestructura/modules/`. Por ahora solo existe el de Cloudflare.
 
 ## Decisiones pendientes
 
