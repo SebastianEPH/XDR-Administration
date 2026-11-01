@@ -1,20 +1,26 @@
 terraform {
+  required_version = ">= 1.9"
+
   required_providers {
     cloudflare = {
-      source = "cloudflare/cloudflare"
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.0"
     }
   }
 }
 
+# El token se lee de la variable de entorno CLOUDFLARE_API_TOKEN.
+provider "cloudflare" {}
+
 resource "cloudflare_r2_bucket" "buzon" {
-  account_id = var.account_id
+  account_id = var.cloudflare_account_id
   name       = var.bucket_name
 }
 
 # Respaldo del borrado que hace el panel: elimina lo que nunca se importó
 # y limpia las subidas que quedaron incompletas.
 resource "cloudflare_r2_bucket_lifecycle" "buzon" {
-  account_id  = var.account_id
+  account_id  = var.cloudflare_account_id
   bucket_name = cloudflare_r2_bucket.buzon.name
 
   rules = [

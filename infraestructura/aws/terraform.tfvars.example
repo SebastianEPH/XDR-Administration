@@ -1,2 +1,2 @@
 # Copia este archivo como terraform.tfvars y completa los valores.
-cloudflare_account_id = "TU_ACCOUNT_ID"
+bucket_name = "NOMBRE_UNICO_DEL_BUCKET"

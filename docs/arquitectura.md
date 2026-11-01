@@ -57,7 +57,7 @@ Si un paso falla, el lote sigue en el bucket y se reintenta sin duplicar datos.
 - R2 es compatible con la API de S3, así que el mismo código de almacenamiento sirve para ambos.
 - El agente y el panel solo hablan con nuestra API, no con servicios de una nube concreta.
 - Las órdenes se guardan como archivos en el bucket, sin una base de datos adicional.
-- Cada nube tiene su propio módulo en `infraestructura/modules/`. Por ahora solo existe el de Cloudflare.
+- Cada nube tiene su propia carpeta en `infraestructura/`: Cloudflare y AWS son alternativas y solo se despliega una.
 
 ## Decisiones pendientes
 
